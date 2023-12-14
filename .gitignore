@@ -1,0 +1,8 @@
+coverage.json
+coverage.lcov
+.idea
+*.pkey
+*.private
+*.pem
+
+node_modules
