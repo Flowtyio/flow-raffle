@@ -24,19 +24,6 @@ pub contract Raffles {
         }
     }
 
-    pub struct Result {
-        pub let index: Int
-        pub let value: AnyStruct
-
-        init(
-            _ index: Int,
-            _ value: AnyStruct
-        ) {
-            self.index = index
-            self.value = value
-        }
-    }
-
     pub resource interface RafflePublic {
         pub fun getEntryAt(index: Int): AnyStruct
     }
