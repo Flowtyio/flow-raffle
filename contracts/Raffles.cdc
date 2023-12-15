@@ -78,7 +78,7 @@ pub contract Raffles {
 
         pub fun draw(): Int {
             let r = revertibleRandom()
-            return Int(UInt64(self.addresses.length) % r)
+            return Int(r % UInt64(self.addresses.length))
         }
 
         pub fun getEntryAt(index: Int): AnyStruct {
