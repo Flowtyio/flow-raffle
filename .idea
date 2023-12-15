@@ -1,0 +1,13 @@
+flow transactions send --signer=emulator-1 transactions/setup_manager.cdc
+
+flow transactions send --signer=emulator-1 transactions/create_raffle.cdc
+
+flow transactions send --signer=emulator-1 transactions/add_address_raffle.cdc '1' '0x0ae53cb6e3f42a79'
+
+flow transactions send --signer=emulator-1 transactions/raffle_draw.cdc '1'
+
+flow scripts execute scripts/borrow_manager.cdc '0x01cf0e2f2f715450'
+
+flow scripts execute scripts/get_raffle_addresses.cdc '0x01cf0e2f2f715450' '1'
+
+Result: [0x0ae53cb6e3f42a79, 0x0ae53cb6e3f42a79, 0x0ae53cb6e3f42a79, 0x0000000000012345, 0x1234123123123125, 0x0000000000333333, 0x0000000000333333, 0x0000000000444444, 0x0000000000444444, 0x0000000055555555, 0x0000000055555555]
