@@ -2,10 +2,9 @@ import "Raffles"
 import "RaffleSources"
 import "MetadataViews"
 
-transaction(sourceIdentifier: String, start: UInt64?, end: UInt64?, name: String, description: String, thumbnail: String) {
+transaction(type: Type, start: UInt64?, end: UInt64?, name: String, description: String, thumbnail: String) {
     prepare(acct: AuthAccount) {
-        let ct = CompositeType(sourceIdentifier) ?? panic("invalid source identifier")
-        let source <- RaffleSources.createRaffleSource(ct)
+        let source <- RaffleSources.createRaffleSource(type)
 
         if acct.borrow<&AnyResource>(from: Raffles.ManagerStoragePath) == nil {
             acct.save(<-Raffles.createManager(), to: Raffles.ManagerStoragePath)

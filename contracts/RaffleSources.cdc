@@ -1,42 +1,49 @@
 import "Raffles"
 
 pub contract RaffleSources {
-    pub resource AddressRaffleSource: Raffles.RaffleSource {
-        pub let addresses: [Address]
+    pub resource GenericRaffleSource: Raffles.RaffleSource {
+        pub let entries: [AnyStruct]
+        pub let entryType: Type
+
+        pub fun getEntryType(): Type {
+            return self.entryType
+        }
 
         pub fun getEntryAt(index: Int): AnyStruct {
-            return self.addresses[index]
+            return self.entries[index]
         }
 
         pub fun addEntry(_ v: AnyStruct) {
-            let addr = v as! Address
-            self.addresses.append(addr)
+            pre {
+                v.getType() == self.entryType: "incorrect entry type"
+            }
+
+            self.entries.append(v)
         }
 
         pub fun addEntries(_ v: [AnyStruct]) {
-            let addrs = v as! [Address]
-            self.addresses.appendAll(addrs)
+            pre { 
+                VariableSizedArrayType(self.entryType) == v.getType(): "incorrect array type"
+            }
+
+            self.entries.appendAll(v)
         }
 
         pub fun getNumEntries(): Int {
-            return self.addresses.length
+            return self.entries.length
         }
 
         pub fun getEntries(): [AnyStruct] {
-            return self.addresses
+            return self.entries
         }
 
-        init() {
-            self.addresses = []
+        init(_ entryType: Type) {
+            self.entries = []
+            self.entryType = entryType
         }
     }
 
-    pub fun createRaffleSource(_ type: Type): @{Raffles.RaffleSource} {
-        switch type {
-            case Type<@AddressRaffleSource>():
-                return <- create AddressRaffleSource()
-        }
-
-        panic("raffle source type ".concat(type.identifier).concat(" is not valid"))
+    pub fun createRaffleSource(_ type: Type): @GenericRaffleSource {
+        return <- create GenericRaffleSource(type)
     }
 }

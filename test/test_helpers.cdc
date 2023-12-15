@@ -5,11 +5,6 @@ import Test
     https://github.com/onflow/hybrid-custody/blob/main/test/test_helpers.cdc
 */
 
-pub let RafflesContractAddress = Address(0x0000000000000007)
-pub let RaffleSourcesContractAddress = Address(0x0000000000000008)
-
-pub let AddressRaffleSourceIdentifier = "A.0000000000000008.RaffleSources.AddressRaffleSource"
-
 pub fun loadCode(_ fileName: String, _ baseDirectory: String): String {
     return Test.readFile("../".concat(baseDirectory).concat("/").concat(fileName))
 }

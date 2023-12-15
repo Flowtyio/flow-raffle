@@ -1,11 +1,11 @@
 import "RaffleSources"
 
-transaction(identifier: String, path: StoragePath) {
+transaction(type: Type, path: StoragePath) {
     prepare(acct: AuthAccount) {
-        let ct = CompositeType(identifier)!
-        let source <- RaffleSources.createRaffleSource(ct)
+        let source <- RaffleSources.createRaffleSource(type)
+        let t = source.getEntryType()
+        assert(t == type)
 
-        assert(source.getType() == ct, message: "mismatched raffle source type")
         acct.save(<-source, to: path)
     }
 }

@@ -5,6 +5,11 @@ import "Raffles"
 import "RaffleSources"
 import "MetadataViews"
 
+pub let RafflesContractAddress = Address(0x0000000000000007)
+pub let RaffleSourcesContractAddress = Address(0x0000000000000008)
+
+pub let GenericRaffleSourceIdentifier = "A.0000000000000008.RaffleSources.GenericRaffleSource"
+
 pub fun setup() {
     var err = Test.deployContract(name: "Raffles", path: "../contracts/Raffles.cdc", arguments: [])
     Test.expect(err, Test.beNil())
@@ -22,9 +27,9 @@ pub fun testSetupManager() {
 pub fun testCreateRaffleSource() {
     let acct = Test.createAccount()
     let path = StoragePath(identifier: "testCreateRaffleSource")!
-    txExecutor("create_raffle_source.cdc", [acct], [AddressRaffleSourceIdentifier, path], nil)
+    txExecutor("create_raffle_source.cdc", [acct], [Type<Address>(), path], nil)
     let res = scriptExecutor("get_raffle_source_identifier.cdc", [acct.address, path])
-    assert(res! as! String == AddressRaffleSourceIdentifier, message: "unexpected raffle source identifier")
+    assert(res! as! String == GenericRaffleSourceIdentifier, message: "unexpected raffle source identifier")
 }
 
 pub fun testCreateRaffle() {
@@ -35,7 +40,7 @@ pub fun testCreateRaffle() {
     let start: UInt64? = nil
     let end: UInt64? = nil
 
-    txExecutor("create_raffle.cdc", [acct], [AddressRaffleSourceIdentifier, start, end, name, description, thumbnail], nil)
+    txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail], nil)
     let createEvent = (Test.eventsOfType(Type<Raffles.RaffleCreated>()).removeLast() as! Raffles.RaffleCreated)
     assert(acct.address == createEvent.address)
 
@@ -51,20 +56,21 @@ pub fun testCreateRaffle() {
 pub fun testAddToRaffle() {
     let acct = Test.createAccount()
     let id = createAddressRaffle(acct)
-    let beforeEntries = getRaffleEntries(acct, id)! as! [Address]
+    let beforeEntries = getRaffleEntries(acct, id)!
     assert(beforeEntries.length == 0)
 
     addEntryToRaffle(acct, id, acct.address)
+
     
-    let afterEntries = getRaffleEntries(acct, id)! as! [Address]
+    let afterEntries = getRaffleEntries(acct, id)!
     assert(afterEntries.length == 1)
-    assert(afterEntries[0] == acct.address)
+    assert(afterEntries[0] as! Address == acct.address)
 }
 
 pub fun testDrawFromRaffle() {
     let acct = Test.createAccount()
     let id = createAddressRaffle(acct)
-    let beforeEntries = getRaffleEntries(acct, id)! as! [Address]
+    let beforeEntries = getRaffleEntries(acct, id)!
     addEntryToRaffle(acct, id, acct.address)
 
     // make sure we can draw an entry from the raffle, even when it only has a single item in it
@@ -123,7 +129,7 @@ pub fun createAddressRaffle(_ acct: Test.Account): UInt64 {
     let start: UInt64? = nil
     let end: UInt64? = nil
 
-    txExecutor("create_raffle.cdc", [acct], [AddressRaffleSourceIdentifier, start, end, name, description, thumbnail], nil)
+    txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail], nil)
     let createEvent = (Test.eventsOfType(Type<Raffles.RaffleCreated>()).removeLast() as! Raffles.RaffleCreated)
     return createEvent.raffleID
 }
