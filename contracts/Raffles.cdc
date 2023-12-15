@@ -57,12 +57,10 @@ pub contract Raffles {
 
         init(
             source: @{RaffleSource},
-            start: UInt64?,
-            end: UInt64,
-            display: MetadataViews.Display
+            details: Details
         ) {
             self.source <- source
-            self.details = Details(start, end, display)
+            self.details = details
         }
 
         destroy() {
@@ -132,6 +130,19 @@ pub contract Raffles {
 
     pub fun createManager(): @Manager {
         return <- create Manager()
+    }
+
+    pub fun createRaffle(source: @{RaffleSource}, details: Details): @Raffle {
+        return <- create Raffle(source: <- source, details: details)        
+    }
+
+    pub fun createRaffleSource(_ type: Type): @{RaffleSource} {
+        switch type {
+            case Type<@AddressRaffleSource>():
+                return <- create AddressRaffleSource()
+        }
+
+        panic("raffle source type ".concat(type.identifier).concat(" is not valid"))
     }
 
     init() {
