@@ -26,6 +26,12 @@
         "testing": "0x0000000000000007"
       }
     },
+    "RaffleSources": {
+      "source": "./contracts/RaffleSources.cdc",
+      "aliases": {
+        "testing": "0x0000000000000008"
+      }
+    },
     "FungibleToken": {
       "source": "./node_modules/@flowtyio/flow-contracts/contracts/FungibleToken.cdc",
       "aliases": {
