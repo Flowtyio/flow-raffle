@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@flowtyio/flow-contracts": "^0.0.18"
+  }
+}
