@@ -1,8 +1,8 @@
-import "Raffles"
+import "FlowtyRaffles"
 
-pub fun main(addr: Address, id: UInt64): Raffles.Details? {
+pub fun main(addr: Address, id: UInt64): FlowtyRaffles.Details? {
     let acct = getAuthAccount(addr)
-    let manager = acct.borrow<&Raffles.Manager>(from: Raffles.ManagerStoragePath)
+    let manager = acct.borrow<&FlowtyRaffles.Manager>(from: FlowtyRaffles.ManagerStoragePath)
         ?? panic("raffles manager not found")
 
     if let raffle = manager.borrowRafflePublic(id: id) {

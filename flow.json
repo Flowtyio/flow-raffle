@@ -20,14 +20,14 @@
     }
   },
   "contracts": {
-    "Raffles": {
-      "source": "./contracts/Raffles.cdc",
+    "FlowtyRaffles": {
+      "source": "./contracts/FlowtyRaffles.cdc",
       "aliases": {
         "testing": "0x0000000000000007"
       }
     },
-    "RaffleSources": {
-      "source": "./contracts/RaffleSources.cdc",
+    "FlowtyRaffleSource": {
+      "source": "./contracts/FlowtyRaffleSource.cdc",
       "aliases": {
         "testing": "0x0000000000000008"
       }
@@ -105,7 +105,7 @@
         "MetadataViews",
         "ViewResolver",
         "NonFungibleToken",
-        "Raffles"
+        "FlowtyRaffles"
       ],
       "emulator-ft": [
         "FungibleToken",
