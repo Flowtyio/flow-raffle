@@ -1,20 +1,20 @@
 import Test
 import "test_helpers.cdc"
 
-import "Raffles"
-import "RaffleSources"
+import "FlowtyRaffles"
+import "FlowtyRaffleSource"
 import "MetadataViews"
 
-pub let RafflesContractAddress = Address(0x0000000000000007)
-pub let RaffleSourcesContractAddress = Address(0x0000000000000008)
+pub let FlowtyRafflesContractAddress = Address(0x0000000000000007)
+pub let FlowtyRaffleSourceContractAddress = Address(0x0000000000000008)
 
-pub let GenericRaffleSourceIdentifier = "A.0000000000000008.RaffleSources.GenericRaffleSource"
+pub let GenericRaffleSourceIdentifier = "A.0000000000000008.FlowtyRaffleSource.GenericRaffleSource"
 
 pub fun setup() {
-    var err = Test.deployContract(name: "Raffles", path: "../contracts/Raffles.cdc", arguments: [])
+    var err = Test.deployContract(name: "FlowtyRaffles", path: "../contracts/FlowtyRaffles.cdc", arguments: [])
     Test.expect(err, Test.beNil())
 
-    err = Test.deployContract(name: "RaffleSources", path: "../contracts/RaffleSources.cdc", arguments: [])
+    err = Test.deployContract(name: "FlowtyRaffleSource", path: "../contracts/FlowtyRaffleSource.cdc", arguments: [])
     Test.expect(err, Test.beNil())
 }
 
@@ -41,7 +41,7 @@ pub fun testCreateRaffle() {
     let end: UInt64? = nil
 
     txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail], nil)
-    let createEvent = (Test.eventsOfType(Type<Raffles.RaffleCreated>()).removeLast() as! Raffles.RaffleCreated)
+    let createEvent = (Test.eventsOfType(Type<FlowtyRaffles.RaffleCreated>()).removeLast() as! FlowtyRaffles.RaffleCreated)
     assert(acct.address == createEvent.address)
 
     let details = getRaffleDetails(acct, createEvent.raffleID) ?? panic("raffle not found")
@@ -93,9 +93,9 @@ pub fun testDrawFromRaffle() {
     assert(accounts[drawing2] != nil)
 }
 
-pub fun getRaffleDetails(_ acct: Test.Account, _ id: UInt64): Raffles.Details? {
+pub fun getRaffleDetails(_ acct: Test.Account, _ id: UInt64): FlowtyRaffles.Details? {
     if let res = scriptExecutor("get_raffle_details.cdc", [acct.address, id]) {
-        return res as! Raffles.Details
+        return res as! FlowtyRaffles.Details
     }
     return nil
 }
@@ -130,13 +130,13 @@ pub fun createAddressRaffle(_ acct: Test.Account): UInt64 {
     let end: UInt64? = nil
 
     txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail], nil)
-    let createEvent = (Test.eventsOfType(Type<Raffles.RaffleCreated>()).removeLast() as! Raffles.RaffleCreated)
+    let createEvent = (Test.eventsOfType(Type<FlowtyRaffles.RaffleCreated>()).removeLast() as! FlowtyRaffles.RaffleCreated)
     return createEvent.raffleID
 }
 
 pub fun drawFromRaffle(_ signer: Test.Account, _ addr: Address, _ id: UInt64): String {
     txExecutor("draw_from_raffle.cdc", [signer], [addr, id], nil)
 
-    let drawingEvent = Test.eventsOfType(Type<Raffles.RaffleDrawn>()).removeLast() as! Raffles.RaffleDrawn
+    let drawingEvent = Test.eventsOfType(Type<FlowtyRaffles.RaffleDrawn>()).removeLast() as! FlowtyRaffles.RaffleDrawn
     return drawingEvent.value
 }

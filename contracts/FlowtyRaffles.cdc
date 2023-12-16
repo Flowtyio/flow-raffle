@@ -1,12 +1,33 @@
 import "MetadataViews"
 
-pub contract Raffles {
+/*
+FlowtyRaffles - The main contract which contains a definition for:
+
+1. Raffles - A resource which encapsulates an ongoing raffle
+2. RaffleSource - A resource interface which specified how a raffle will attempt to select a winner
+3. Manager - A container resource for raffles to be stored in
+
+The Raffles resource takes no view on what kind of item should be randomly drawn. Because of that, there is no
+mechanism to distribute prizes when a drawing is made. This is intentional, and is meant to separate the act of 
+drawing an item from a raffle source, and sending it so that there are no restrictions on what kind of item might
+need to be randomly drawn.
+
+For example, a raffle could be made which draws a random post from a social media platform. In that case, only the 
+post itself needs to be randomly drawn. Action based on that drawing would likely need to be done separately.
+
+Similarly one could make a raffle which distributes prizes in real-time by drawing a winner and then could:
+
+1. Distribute the prize in a second operation in the same transaction
+2. Send the item to lost and found for the winner to redeem (https://github.com/Flowtyio/lost-and-found)
+*/
+pub contract FlowtyRaffles {
     pub let ManagerStoragePath: StoragePath
     pub let ManagerPublicPath: PublicPath
 
     pub event RaffleCreated(address: Address?, raffleID: UInt64, sourceType: Type)
     pub event RaffleDrawn(address: Address?, raffleID: UInt64, sourceType: Type, index: Int, value: String, valueType: Type)
 
+    // Details - Info about the raffle. This currently includes when the raffle starts, ends, and how to display it.
     pub struct Details {
         pub let start: UInt64?
         pub let end: UInt64?
@@ -24,6 +45,9 @@ pub contract Raffles {
         }
     }
 
+    // DrawingSelection - Returned when a raffle is drawn from. We will return the index that was selected and the 
+    // value underneath it. This should assist with letting anyone using raffles to take action on them in the same transaction
+    // without the raffle itself needing to worry about those details.
     pub struct DrawingSelection {
         pub let index: Int
         pub let value: AnyStruct
@@ -35,22 +59,58 @@ pub contract Raffles {
     }
 
     pub resource interface RafflePublic {
+        // Return the value of a raffle source at a given index
         pub fun getEntryAt(index: Int): AnyStruct
+
+        // Return the details associated with this raffle
         pub fun getDetails(): Details
+
+        // Return the number of entries in this raffle
         pub fun getNumEntries(): Int
+
+        // Return all entries in this raffle
+        // NOTE: If there are too many entries in a raffle, this method will exceed computation limits
         pub fun getEntries(): [AnyStruct]
+
+        // Draws a random item from the RaffleSource and returns the index that was selected along with the 
+        // value of the item underneath.
         pub fun draw(): DrawingSelection
     }
 
     pub resource interface RaffleSource {
+        // Should return the entry of a raffle source at a given index.
+        // NOTE: There is no way to enforce this on this contract, whatever RaffleSource resource
+        // implementation you use, make sure you trust how it performs its drawing
         pub fun getEntryAt(index: Int): AnyStruct
+
+        // Adds an entry to this RaffleSource resource
+        // NOTE: Some raffle sources might not permit this action. For instance, using a FLOAT
+        // as a raffle source would mean the only way to add an entry is to mint the FLOAT
+        // a raffle corresponds to
         pub fun addEntry(_ v: AnyStruct)
+
+        // Adds many entries at once to a given raffle source.
+        // NOTE: Some raffle sources might not permit this action. For instance, using a FLOAT
+        // as a raffle source would mean the only way to add an entry is to mint the FLOAT
+        // a raffle corresponds to
         pub fun addEntries(_ v: [AnyStruct])
+
+        // Should return the number of entries on a RaffleSource resource.
+        // NOTE: There is no way to enforce this on this contract, whatever RaffleSource resource
+        // implementation you use, make sure you trust how it performs its drawing
         pub fun getNumEntries(): Int
+
+        // Should return all entries in a RaffleSource resource
+        // NOTE: There is no way to enforce this on this contract, whatever RaffleSource resource
+        // implementation you use, make sure you trust how it performs its drawing
         pub fun getEntries(): [AnyStruct]
     }
 
     pub resource Raffle: RafflePublic, MetadataViews.Resolver {
+        // The source for drawing winners in a raffle. Anyone can implement their own version of a RaffleSource,
+        // or they can use the GenericRaffleSource implementation found in FlowtyRaffleSource which can handle any 
+        // primitive type found in cadence documentation here:
+        // 
         pub let source: @{RaffleSource}
         pub let details: Details
 
@@ -72,7 +132,7 @@ pub contract Raffles {
             let index = Int(r % UInt64(numEntries))
             let value = self.source.getEntryAt(index: index)
 
-            Raffles.emitDrawing(self.owner?.address, self.uuid, self.source.getType(), index, value)
+            FlowtyRaffles.emitDrawing(self.owner?.address, self.uuid, self.source.getType(), index, value)
             return DrawingSelection(index, value)
         }
 

@@ -1,7 +1,7 @@
-import "Raffles"
+import "FlowtyRaffles"
 
-pub contract RaffleSources {
-    pub resource GenericRaffleSource: Raffles.RaffleSource {
+pub contract FlowtyRaffleSource {
+    pub resource GenericRaffleSource: FlowtyRaffles.RaffleSource {
         pub let entries: [AnyStruct]
         pub let entryType: Type
 

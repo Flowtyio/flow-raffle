@@ -1,6 +1,6 @@
-import "Raffles"
+import "FlowtyRaffles"
 
 pub fun main(addr: Address) {
-    getAccount(addr).getCapability<&Raffles.Manager{Raffles.ManagerPublic}>(Raffles.ManagerPublicPath).borrow()
+    getAccount(addr).getCapability<&FlowtyRaffles.Manager{FlowtyRaffles.ManagerPublic}>(FlowtyRaffles.ManagerPublicPath).borrow()
         ?? panic("unable to borrow manager")
 }
