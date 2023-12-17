@@ -25,7 +25,7 @@ pub contract FlowtyRaffles {
     pub let ManagerPublicPath: PublicPath
 
     pub event RaffleCreated(address: Address?, raffleID: UInt64, sourceType: Type)
-    pub event RaffleDrawn(address: Address?, raffleID: UInt64, sourceType: Type, index: Int, value: String, valueType: Type)
+    pub event RaffleDrawn(address: Address?, raffleID: UInt64, sourceType: Type, index: Int?, value: String?, valueType: Type?)
 
     // Details - Info about the raffle. This currently includes when the raffle starts, ends, and how to display it.
     pub struct Details {
@@ -74,7 +74,7 @@ pub contract FlowtyRaffles {
 
         // Draws a random item from the RaffleSource and returns the index that was selected along with the 
         // value of the item underneath.
-        pub fun draw(): DrawingSelection
+        pub fun draw(): DrawingSelection?
     }
 
     pub resource interface RaffleSource {
@@ -104,13 +104,17 @@ pub contract FlowtyRaffles {
         // NOTE: There is no way to enforce this on this contract, whatever RaffleSource resource
         // implementation you use, make sure you trust how it performs its drawing
         pub fun getEntries(): [AnyStruct]
+
+        // Perform a drawing on this raffle source, returning an optional DrawingSelection, in the 
+        // case that a raffle is resolved inside of the transaction that it takes place in.
+        // In commit-reveal schemes, the result will be nil
+        pub fun draw(): DrawingSelection?
     }
 
     pub resource Raffle: RafflePublic, MetadataViews.Resolver {
         // The source for drawing winners in a raffle. Anyone can implement their own version of a RaffleSource,
         // or they can use the GenericRaffleSource implementation found in FlowtyRaffleSource which can handle any 
         // primitive type found in cadence documentation here:
-        // 
         pub let source: @{RaffleSource}
         pub let details: Details
 
@@ -126,14 +130,10 @@ pub contract FlowtyRaffles {
             return self.source.getEntries()
         }
 
-        pub fun draw(): DrawingSelection {
-            let numEntries = self.source.getNumEntries()
-            let r = revertibleRandom()
-            let index = Int(r % UInt64(numEntries))
-            let value = self.source.getEntryAt(index: index)
-
-            FlowtyRaffles.emitDrawing(self.owner?.address, self.uuid, self.source.getType(), index, value)
-            return DrawingSelection(index, value)
+        pub fun draw(): DrawingSelection? {
+            let drawing = self.source.draw()
+            FlowtyRaffles.emitDrawing(self.owner?.address, self.uuid, self.source.getType(), drawing?.index, drawing?.value)
+            return drawing
         }
 
         pub fun getEntryAt(index: Int): AnyStruct {
@@ -216,18 +216,34 @@ pub contract FlowtyRaffles {
         }
     }
 
-    access(contract) fun emitDrawing(_ address: Address?, _ raffleID: UInt64, _ sourceType: Type, _ index: Int, _ value: AnyStruct) {
-        var v = "UNKNOWN"
-        switch value.getType() {
-            case Type<Address>():
-                v = (value as! Address).toString()
-                break
-            case Type<UInt64>():
-                v = (value as! UInt64).toString()
-                break
+    pub fun extractString(_ value: AnyStruct?): String? {
+        if value == nil {
+            return nil
         }
 
-        emit RaffleDrawn(address: address, raffleID: raffleID, sourceType: sourceType, index: index, value: v, valueType: value.getType())
+        let v = value!
+        let t = v.getType()
+        if t.isSubtype(of: Type<Integer>()) {
+            return (v as! Integer).toString()
+        }
+
+        if t.isSubtype(of: Type<FixedPoint>()) {
+            return (v as! FixedPoint).toString()
+        }
+
+        switch t {
+            case Type<Address>():
+                return (v as! Address).toString()
+            case Type<String>():
+                return (value as! String)
+        }
+
+        return nil
+    }
+
+    access(account) fun emitDrawing(_ address: Address?, _ raffleID: UInt64, _ sourceType: Type, _ index: Int?, _ value: AnyStruct?) {
+        var v = self.extractString(value)
+        emit RaffleDrawn(address: address, raffleID: raffleID, sourceType: sourceType, index: index, value: v, valueType: value?.getType() ?? nil)
     }
 
     pub fun createManager(): @Manager {
