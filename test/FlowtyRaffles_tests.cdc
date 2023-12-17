@@ -138,5 +138,5 @@ pub fun drawFromRaffle(_ signer: Test.Account, _ addr: Address, _ id: UInt64): S
     txExecutor("draw_from_raffle.cdc", [signer], [addr, id], nil)
 
     let drawingEvent = Test.eventsOfType(Type<FlowtyRaffles.RaffleDrawn>()).removeLast() as! FlowtyRaffles.RaffleDrawn
-    return drawingEvent.value
+    return drawingEvent.value ?? ""
 }

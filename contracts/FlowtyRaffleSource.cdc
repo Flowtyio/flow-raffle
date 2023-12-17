@@ -37,6 +37,15 @@ pub contract FlowtyRaffleSource {
             return self.entries
         }
 
+        pub fun draw(): FlowtyRaffles.DrawingSelection {
+            let numEntries = self.entries.length
+            let r = revertibleRandom()
+            let index = Int(r % UInt64(numEntries))
+            let value = self.entries[index]
+
+            return FlowtyRaffles.DrawingSelection(index, value)
+        }
+
         init(_ entryType: Type) {
             self.entries = []
             self.entryType = entryType
