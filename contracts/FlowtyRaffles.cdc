@@ -143,6 +143,10 @@ pub contract FlowtyRaffles {
         // Basic details about this raffle
         pub let details: Details
 
+        // a set of addresses which are allowed to perform reveals on a raffle.
+        // set this to nil to allow anyone to reveal a drawing
+        pub var revealers: {Address: Bool}?
+
         // The source of entries for this raffle. This allows a raffle to delegate out 
         // what is being drawn. Some raffles might be for Addresses, others might be for
         // UInt64s or Strings
@@ -198,10 +202,27 @@ pub contract FlowtyRaffles {
             return self.details
         }
 
-        init(source: @{RaffleSourcePublic, RaffleSourcePrivate}, details: Details) {
+        init(source: @{RaffleSourcePublic, RaffleSourcePrivate}, details: Details, revealers: [Address]?) {
             self.details = details
             self.source <- source
             self.receipts <- {}
+            self.revealers = nil
+
+            /*
+            if an array of permitted revealers has been specified, add it to our set of addresses
+            to be used for verification later when revealing. If revealers is empty or nil, anyone will be
+            able to reveal a drawing
+            */
+            if let r = revealers {
+                let d: {Address: Bool} = {}
+                for addr in r {
+                    d[addr] = true
+                }
+
+                if d.length > 0 {
+                    self.revealers = d
+                }
+            }
         }
 
         destroy () {
@@ -220,7 +241,8 @@ pub contract FlowtyRaffles {
     */
     pub resource interface ManagerPublic {
         pub fun borrowRafflePublic(id: UInt64): &{RafflePublic}?
-        pub fun revealDrawing(raffleID: UInt64, receiptID: UInt64)
+        pub fun revealDrawing(manager: &Manager{ManagerPublic}, raffleID: UInt64, receiptID: UInt64)
+        access(contract) fun _revealDrawing(raffleID: UInt64, receiptID: UInt64, drawer: &Manager)
     }
 
     /*
@@ -232,6 +254,10 @@ pub contract FlowtyRaffles {
         pub fun borrowRaffle(id: UInt64): &Raffle?
         pub fun commitDrawing(raffleID: UInt64): UInt64
     }
+
+    // This is an empty interface to give reveal requests the ability to vet whether or not
+    // the calling manager is permitted to perform a reveal on a given drawing or not
+    pub resource interface ManagerIdentity {}
 
     pub resource Manager: ManagerPublic, ManagerPrivate {
         pub let raffles: @{UInt64: Raffle}
@@ -255,8 +281,8 @@ pub contract FlowtyRaffles {
         3. how many blocks ahead a result must be to be revealed. Setting commitBlocksAhead to 0 means a reveal can be done in the same block as the commit, and is subject to reversion risks
             discussed here: https://developers.flow.com/build/advanced-concepts/randomness#guidelines-for-safe-usage
         */
-        pub fun createRaffle(source: @{RaffleSourcePublic, RaffleSourcePrivate}, details: Details): UInt64 {
-            let raffle <- create Raffle(source: <-source, details: details)
+        pub fun createRaffle(source: @{RaffleSourcePublic, RaffleSourcePrivate}, details: Details, revealers: [Address]?): UInt64 {
+            let raffle <- create Raffle(source: <-source, details: details, revealers: revealers)
             let uuid = raffle.uuid
             emit RaffleCreated(address: self.owner?.address, raffleID: uuid)
             
@@ -288,9 +314,16 @@ pub contract FlowtyRaffles {
         revealDrawing - reveals the result of a drawing, taking the committed data in the commit stage and using it to
         generate a random number to draw an entry from our raffle source
         */
-        pub fun revealDrawing(raffleID: UInt64, receiptID: UInt64) {
+        pub fun revealDrawing(manager: &Manager{ManagerPublic}, raffleID: UInt64, receiptID: UInt64) {
+            let ref = &self as &Manager
+            manager._revealDrawing(raffleID: raffleID, receiptID: receiptID, drawer: ref)
+        }
+
+        access(contract) fun _revealDrawing(raffleID: UInt64, receiptID: UInt64, drawer: &Manager) {
             let raffle = self.borrowRaffle(id: raffleID)
                 ?? panic("raffle not found")
+
+            assert(raffle.revealers == nil || raffle.revealers![drawer.owner!.address] == true, message: "drawer is not permitted to perform reveals on this raffle")
             let drawingResult = raffle.revealDrawing(id: receiptID)
             let receipt = (&raffle.receipts[receiptID] as &Receipt?)!
 

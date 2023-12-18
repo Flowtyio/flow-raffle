@@ -2,7 +2,7 @@ import "FlowtyRaffles"
 import "FlowtyRaffleSource"
 import "MetadataViews"
 
-transaction(type: Type, start: UInt64?, end: UInt64?, name: String, description: String, thumbnail: String, externalURL: String, commitBlocksAhead: UInt64) {
+transaction(type: Type, start: UInt64?, end: UInt64?, name: String, description: String, thumbnail: String, externalURL: String, commitBlocksAhead: UInt64, revealers: [Address]?) {
     prepare(acct: AuthAccount) {
         let source <- FlowtyRaffleSource.createRaffleSource(entryType: type, removeAfterReveal: false)
 
@@ -20,7 +20,7 @@ transaction(type: Type, start: UInt64?, end: UInt64?, name: String, description:
             thumbnail: MetadataViews.HTTPFile(thumbnail)
         )
         let details = FlowtyRaffles.Details(start, end, display, MetadataViews.ExternalURL(externalURL), commitBlocksAhead: commitBlocksAhead)
-        let id = manager.createRaffle(source: <-source, details: details)
+        let id = manager.createRaffle(source: <-source, details: details, revealers: revealers)
 
         // make sure you can borrow the raffle back
         manager.borrowRafflePublic(id: id) ?? panic("raffle not found")

@@ -46,7 +46,7 @@ pub fun testCreateRaffle() {
     let externalURL = "example.com"
     let commitBlocksAhead = 0 as UInt64
 
-    txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail, externalURL, commitBlocksAhead], nil)
+    txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail, externalURL, commitBlocksAhead, nil], nil)
     let createEvent = (Test.eventsOfType(Type<FlowtyRaffles.RaffleCreated>()).removeLast() as! FlowtyRaffles.RaffleCreated)
     assert(acct.address == createEvent.address)
 
@@ -137,7 +137,7 @@ pub fun createAddressRaffle(_ acct: Test.Account): UInt64 {
     let externalURL = "example.com"
     let commitBlocksAhead = 0 as UInt64
 
-    txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail, externalURL, commitBlocksAhead], nil)
+    txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail, externalURL, commitBlocksAhead, nil], nil)
     let createEvent = (Test.eventsOfType(Type<FlowtyRaffles.RaffleCreated>()).removeLast() as! FlowtyRaffles.RaffleCreated)
     return createEvent.raffleID
 }
