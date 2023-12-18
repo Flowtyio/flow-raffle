@@ -1,9 +1,10 @@
 import "FlowtyRaffles"
 
 pub contract FlowtyRaffleSource {
-    pub resource GenericRaffleSource: FlowtyRaffles.RaffleSource {
+    pub resource AnyStructRaffleSource: FlowtyRaffles.RaffleSourcePublic, FlowtyRaffles.RaffleSourcePrivate {
         pub let entries: [AnyStruct]
         pub let entryType: Type
+        pub let removeAfterReveal: Bool
 
         pub fun getEntryType(): Type {
             return self.entryType
@@ -22,37 +23,41 @@ pub contract FlowtyRaffleSource {
         }
 
         pub fun addEntries(_ v: [AnyStruct]) {
-            pre { 
+            pre {
                 VariableSizedArrayType(self.entryType) == v.getType(): "incorrect array type"
             }
 
             self.entries.appendAll(v)
         }
 
-        pub fun getNumEntries(): Int {
-            return self.entries.length
+        pub fun revealCallback(drawingResult: FlowtyRaffles.DrawingResult) {
+            if !self.removeAfterReveal {
+                return 
+            }
+
+            self.entries.remove(at: drawingResult.index)
         }
 
         pub fun getEntries(): [AnyStruct] {
             return self.entries
         }
 
-        pub fun draw(): FlowtyRaffles.DrawingSelection {
-            let numEntries = self.entries.length
-            let r = revertibleRandom()
-            let index = Int(r % UInt64(numEntries))
-            let value = self.entries[index]
-
-            return FlowtyRaffles.DrawingSelection(index, value)
+        pub fun getEntryCount(): Int {
+            return self.entries.length
         }
 
-        init(_ entryType: Type) {
+        init(entryType: Type, removeAfterReveal: Bool) {
             self.entries = []
             self.entryType = entryType
+            self.removeAfterReveal = removeAfterReveal
         }
     }
 
-    pub fun createRaffleSource(_ type: Type): @GenericRaffleSource {
-        return <- create GenericRaffleSource(type)
+    pub fun createRaffleSource(entryType: Type, removeAfterReveal: Bool): @AnyStructRaffleSource  {
+        pre {
+            entryType.isSubtype(of: Type<AnyStruct>()): "entry type must be a subtype of AnyStruct"
+        }
+
+        return <- create AnyStructRaffleSource(entryType: entryType, removeAfterReveal: removeAfterReveal)
     }
 }

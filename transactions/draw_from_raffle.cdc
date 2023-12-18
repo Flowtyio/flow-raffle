@@ -1,12 +1,10 @@
 import "FlowtyRaffles"
 
 transaction(addr: Address, id: UInt64) {
-    prepare(acct: AuthAccount) { }
-    execute {
-        let manager = getAccount(addr).getCapability<&FlowtyRaffles.Manager{FlowtyRaffles.ManagerPublic}>(FlowtyRaffles.ManagerPublicPath).borrow()
+    prepare(acct: AuthAccount) { 
+        let manager = acct.borrow<&FlowtyRaffles.Manager>(from: FlowtyRaffles.ManagerStoragePath)
             ?? panic("raffles manager not found")
-        let raffle = manager.borrowRafflePublic(id: id)
-            ?? panic("raffle not found")
-        raffle.draw()
+        let receiptID = manager.commitDrawing(raffleID: id)
+        manager.revealDrawing(raffleID: id, receiptID: receiptID)
     }
 }

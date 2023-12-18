@@ -7,6 +7,7 @@ import "MetadataViews"
 
 pub let FlowtyRafflesContractAddress = Address(0x0000000000000007)
 pub let FlowtyRaffleSourceContractAddress = Address(0x0000000000000008)
+pub let Xorshift128plusContractAddress = Address(0x0000000000000008)
 
 pub let GenericRaffleSourceIdentifier = "A.0000000000000008.FlowtyRaffleSource.GenericRaffleSource"
 
@@ -15,6 +16,9 @@ pub fun setup() {
     Test.expect(err, Test.beNil())
 
     err = Test.deployContract(name: "FlowtyRaffleSource", path: "../contracts/FlowtyRaffleSource.cdc", arguments: [])
+    Test.expect(err, Test.beNil())
+
+    err = Test.deployContract(name: "Xorshift128plus", path: "../contracts/standard/Xorshift128plus.cdc", arguments: [])
     Test.expect(err, Test.beNil())
 }
 
@@ -46,9 +50,9 @@ pub fun testCreateRaffle() {
 
     let details = getRaffleDetails(acct, createEvent.raffleID) ?? panic("raffle not found")
 
-    assert(name == details.display.name)
-    assert(description == details.display.description)
-    assert(thumbnail == details.display.thumbnail.uri())
+    assert(name == details.display!.name)
+    assert(description == details.display!.description)
+    assert(thumbnail == details.display!.thumbnail.uri())
     assert(start == details.start)
     assert(end == details.end)
 }
@@ -137,6 +141,6 @@ pub fun createAddressRaffle(_ acct: Test.Account): UInt64 {
 pub fun drawFromRaffle(_ signer: Test.Account, _ addr: Address, _ id: UInt64): String {
     txExecutor("draw_from_raffle.cdc", [signer], [addr, id], nil)
 
-    let drawingEvent = Test.eventsOfType(Type<FlowtyRaffles.RaffleDrawn>()).removeLast() as! FlowtyRaffles.RaffleDrawn
+    let drawingEvent = Test.eventsOfType(Type<FlowtyRaffles.RaffleReceiptRevealed>()).removeLast() as! FlowtyRaffles.RaffleReceiptRevealed
     return drawingEvent.value ?? ""
 }

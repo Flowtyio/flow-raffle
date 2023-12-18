@@ -2,9 +2,9 @@ import "FlowtyRaffles"
 import "FlowtyRaffleSource"
 import "MetadataViews"
 
-transaction(type: Type, start: UInt64?, end: UInt64?, name: String, description: String, thumbnail: String) {
+transaction(type: Type, start: UInt64?, end: UInt64?, name: String, description: String, thumbnail: String, externalURL: String, commitBlocksAhead: UInt64) {
     prepare(acct: AuthAccount) {
-        let source <- FlowtyRaffleSource.createRaffleSource(type)
+        let source <- FlowtyRaffleSource.createRaffleSource(entryType: type, removeAfterReveal: false)
 
         if acct.borrow<&AnyResource>(from: FlowtyRaffles.ManagerStoragePath) == nil {
             acct.save(<-FlowtyRaffles.createManager(), to: FlowtyRaffles.ManagerStoragePath)
@@ -19,8 +19,8 @@ transaction(type: Type, start: UInt64?, end: UInt64?, name: String, description:
             description: description,
             thumbnail: MetadataViews.HTTPFile(thumbnail)
         )
-        let details = FlowtyRaffles.Details(start, end, display)
-        let id = manager.createRaffle(source: <-source, details: details)
+        let details = FlowtyRaffles.Details(start, end, display, MetadataViews.ExternalURL(externalURL))
+        let id = manager.createRaffle(source: <-source, details: details, commitBlocksAhead: commitBlocksAhead)
 
         // make sure you can borrow the raffle back
         manager.borrowRafflePublic(id: id) ?? panic("raffle not found")

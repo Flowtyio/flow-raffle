@@ -2,7 +2,7 @@ import "FlowtyRaffleSource"
 
 transaction(type: Type, path: StoragePath) {
     prepare(acct: AuthAccount) {
-        let source <- FlowtyRaffleSource.createRaffleSource(type)
+        let source <- FlowtyRaffleSource.createRaffleSource(entryType: type, removeAfterReveal: false)
         let t = source.getEntryType()
         assert(t == type)
 
