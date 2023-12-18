@@ -14,6 +14,14 @@ pub contract FlowtyRaffleSource {
             return self.entries[index]
         }
 
+        pub fun getEntries(): [AnyStruct] {
+            return self.entries
+        }
+
+        pub fun getEntryCount(): Int {
+            return self.entries.length
+        }
+
         pub fun addEntry(_ v: AnyStruct) {
             pre {
                 v.getType() == self.entryType: "incorrect entry type"
@@ -36,14 +44,6 @@ pub contract FlowtyRaffleSource {
             }
 
             self.entries.remove(at: drawingResult.index)
-        }
-
-        pub fun getEntries(): [AnyStruct] {
-            return self.entries
-        }
-
-        pub fun getEntryCount(): Int {
-            return self.entries.length
         }
 
         init(entryType: Type, removeAfterReveal: Bool) {

@@ -22,6 +22,14 @@ pub contract FLOATRaffleSource {
             return
         }
 
+        pub fun addEntry(_ v: AnyStruct) {
+            panic("addEntry is not supported on FLOATRaffleSource")
+        }
+
+        pub fun addEntries(_ v: [AnyStruct]) {
+            panic("addEntries is not supported on FLOATRaffleSource")
+        }
+
         pub fun borrowEvent(): &FLOAT.FLOATEvent{FLOAT.FLOATEventPublic} {
             let cap = self.eventCap.borrow() ?? panic("eventCap is not valid")
             return cap.borrowPublicEventRef(eventId: self.eventId) ?? panic("invalid event id")
