@@ -9,7 +9,7 @@ pub let FlowtyRafflesContractAddress = Address(0x0000000000000007)
 pub let FlowtyRaffleSourceContractAddress = Address(0x0000000000000008)
 pub let Xorshift128plusContractAddress = Address(0x0000000000000008)
 
-pub let GenericRaffleSourceIdentifier = "A.0000000000000008.FlowtyRaffleSource.GenericRaffleSource"
+pub let GenericRaffleSourceIdentifier = "A.0000000000000008.FlowtyRaffleSource.AnyStructRaffleSource"
 
 pub fun setup() {
     var err = Test.deployContract(name: "FlowtyRaffles", path: "../contracts/FlowtyRaffles.cdc", arguments: [])
@@ -18,8 +18,8 @@ pub fun setup() {
     err = Test.deployContract(name: "FlowtyRaffleSource", path: "../contracts/FlowtyRaffleSource.cdc", arguments: [])
     Test.expect(err, Test.beNil())
 
-    err = Test.deployContract(name: "Xorshift128plus", path: "../contracts/standard/Xorshift128plus.cdc", arguments: [])
-    Test.expect(err, Test.beNil())
+    // err = Test.deployContract(name: "Xorshift128plus", path: "../contracts/standard/Xorshift128plus.cdc", arguments: [])
+    // Test.expect(err, Test.beNil())
 }
 
 pub fun testSetupManager() {
@@ -43,8 +43,10 @@ pub fun testCreateRaffle() {
     let thumbnail = "https://example.com/thumbnail"
     let start: UInt64? = nil
     let end: UInt64? = nil
+    let externalURL = "example.com"
+    let commitBlocksAhead = 0 as UInt64
 
-    txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail], nil)
+    txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail, externalURL, commitBlocksAhead], nil)
     let createEvent = (Test.eventsOfType(Type<FlowtyRaffles.RaffleCreated>()).removeLast() as! FlowtyRaffles.RaffleCreated)
     assert(acct.address == createEvent.address)
 
@@ -132,8 +134,10 @@ pub fun createAddressRaffle(_ acct: Test.Account): UInt64 {
     let thumbnail = "https://example.com/thumbnail"
     let start: UInt64? = nil
     let end: UInt64? = nil
+    let externalURL = "example.com"
+    let commitBlocksAhead = 0 as UInt64
 
-    txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail], nil)
+    txExecutor("create_raffle.cdc", [acct], [Type<Address>(), start, end, name, description, thumbnail, externalURL, commitBlocksAhead], nil)
     let createEvent = (Test.eventsOfType(Type<FlowtyRaffles.RaffleCreated>()).removeLast() as! FlowtyRaffles.RaffleCreated)
     return createEvent.raffleID
 }

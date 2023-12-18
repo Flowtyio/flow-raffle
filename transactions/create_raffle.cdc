@@ -19,8 +19,8 @@ transaction(type: Type, start: UInt64?, end: UInt64?, name: String, description:
             description: description,
             thumbnail: MetadataViews.HTTPFile(thumbnail)
         )
-        let details = FlowtyRaffles.Details(start, end, display, MetadataViews.ExternalURL(externalURL))
-        let id = manager.createRaffle(source: <-source, details: details, commitBlocksAhead: commitBlocksAhead)
+        let details = FlowtyRaffles.Details(start, end, display, MetadataViews.ExternalURL(externalURL), commitBlocksAhead: commitBlocksAhead)
+        let id = manager.createRaffle(source: <-source, details: details)
 
         // make sure you can borrow the raffle back
         manager.borrowRafflePublic(id: id) ?? panic("raffle not found")
