@@ -99,7 +99,7 @@ pub contract FlowtyRaffles {
         */
         access(contract) fun reveal(_ source: &{RaffleSourcePublic, RaffleSourcePrivate}): DrawingResult {
             pre {
-                self.commitBlock == nil || self.commitBlock! <= getCurrentBlock().height: "receipt cannot be revealed yet"
+                self.commitBlock! <= getCurrentBlock().height: "receipt cannot be revealed yet"
                 self.result == nil: "receipt has already been revealed"
             }
             
