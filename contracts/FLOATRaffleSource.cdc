@@ -1,6 +1,9 @@
 import "FlowtyRaffles"
 import "FLOAT"
 
+/*
+FLOATRaffleSource - A Raffle source implementation which uses the claims on a FLOAT as the source of a drawing.
+*/
 pub contract FLOATRaffleSource {
     pub resource RaffleSource {
         pub let eventCap: Capability<&FLOAT.FLOATEvents{FLOAT.FLOATEventsPublic}>

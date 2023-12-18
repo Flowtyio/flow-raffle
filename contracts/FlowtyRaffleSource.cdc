@@ -1,5 +1,18 @@
 import "FlowtyRaffles"
 
+/*
+FlowtyRaffleSource - Contains a basic implementation of RaffleSource which can be used for all `AnyStruct`
+types. For example, if a consumer of this resource wanted to make a raffle that uses an array of Addresses as the pool
+to draw from, they could use the AnyStructRaffleSource with an entry type of Type<Address>() and would be guaranteed to only
+be able to put addresses in their array of entries.
+
+This is enforced so that consumers of that source can have safety when reading entries from the array in case they want to handle any additional
+logic alongside the raffle itself, such as distributing a prize when a raffle is drawn
+
+In addition to entryType, a field called `removeAfterReveal` is also provided, which, if enabled, will remove an entry
+from the entries array any time a reveal is performed. This is useful for cases where you don't want the same entry to be able to be drawn
+multiple times.
+*/
 pub contract FlowtyRaffleSource {
     pub resource AnyStructRaffleSource: FlowtyRaffles.RaffleSourcePublic, FlowtyRaffles.RaffleSourcePrivate {
         pub let entries: [AnyStruct]
