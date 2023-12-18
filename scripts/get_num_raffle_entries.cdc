@@ -6,6 +6,7 @@ pub fun main(addr: Address, id: UInt64): Int {
         ?? panic("raffles manager not found")
     let raffle = manager.borrowRafflePublic(id: id)
         ?? panic("raffle not found")
-
-    return raffle.getNumEntries()
+    let source = raffle.borrowSourcePublic()
+        ?? panic("raffle source is invaid")
+    return source.getEntryCount()
 }

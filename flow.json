@@ -32,6 +32,24 @@
         "testing": "0x0000000000000008"
       }
     },
+		"RandomBeaconHistory": {
+			"source": "./contracts/standard/RandomBeaconHistory.cdc",
+			"aliases": {
+				"emulator": "0xf8d6e0586b0a20c7",
+				"mainnet": "0xe467b9dd11fa00df",
+				"testnet": "0x8c5303eaa26202d6",
+        "testing": "0x0000000000000001"
+			}
+		},
+		"Xorshift128plus": {
+			"source": "./contracts/standard/Xorshift128plus.cdc",
+			"aliases": {
+				"emulator": "0xf8d6e0586b0a20c7",
+				"testnet": "0xed24dbe901028c5c",
+				"mainnet": "0x45caec600164c9e6",
+        "testing": "0x0000000000000009"
+			}
+		},
     "FungibleToken": {
       "source": "./node_modules/@flowtyio/flow-contracts/contracts/FungibleToken.cdc",
       "aliases": {
@@ -105,6 +123,8 @@
         "MetadataViews",
         "ViewResolver",
         "NonFungibleToken",
+        "RandomBeaconHistory",
+        "Xorshift128plus",
         "FlowtyRaffles"
       ],
       "emulator-ft": [
