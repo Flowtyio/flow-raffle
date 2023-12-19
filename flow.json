@@ -17,18 +17,30 @@
     "emulator-flowtoken": {
       "address": "0ae53cb6e3f42a79",
       "key": "f2e846bd4c1fbf17839ae59e111c6b1c98579eda7a841412f102d6621ec671cb"
+    },
+    "raffles-testnet": {
+      "address": "0x894269f57ac04a6e",
+      "key": {
+        "type": "google-kms",
+        "hashAlgorithm": "SHA2_256",
+        "resourceID": "projects/flowty-test/locations/global/keyRings/flow/cryptoKeys/raffles/cryptoKeyVersions/1"
+      }
     }
   },
   "contracts": {
     "FlowtyRaffles": {
       "source": "./contracts/FlowtyRaffles.cdc",
       "aliases": {
+        "emulator": "0xf8d6e0586b0a20c7",
+        "testnet": "0x894269f57ac04a6e",
         "testing": "0x0000000000000007"
       }
     },
     "FlowtyRaffleSource": {
       "source": "./contracts/FlowtyRaffleSource.cdc",
       "aliases": {
+        "emulator": "0xf8d6e0586b0a20c7",
+        "testnet": "0x894269f57ac04a6e",
         "testing": "0x0000000000000008"
       }
     },
@@ -133,6 +145,12 @@
       ],
       "emulator-flowtoken": [
         "FlowToken"
+      ]
+    },
+    "testnet": {
+      "raffles-testnet": [
+        "FlowtyRaffles",
+        "FlowtyRaffleSource"
       ]
     }
   }
