@@ -25,6 +25,14 @@
         "hashAlgorithm": "SHA2_256",
         "resourceID": "projects/flowty-test/locations/global/keyRings/flow/cryptoKeys/raffles/cryptoKeyVersions/1"
       }
+    },
+    "raffles-mainnet": {
+      "address": "0x2fb4614ede95ab2b",
+      "key": {
+        "type": "google-kms",
+        "hashAlgorithm": "SHA2_256",
+        "resourceID": "projects/flowty-prod/locations/global/keyRings/flow/cryptoKeys/raffles/cryptoKeyVersions/1"
+      }
     }
   },
   "contracts": {
@@ -149,6 +157,12 @@
     },
     "testnet": {
       "raffles-testnet": [
+        "FlowtyRaffles",
+        "FlowtyRaffleSource"
+      ]
+    },
+    "mainnet": {
+      "raffles-mainnet": [
         "FlowtyRaffles",
         "FlowtyRaffleSource"
       ]
