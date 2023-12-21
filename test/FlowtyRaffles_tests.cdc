@@ -12,14 +12,15 @@ pub let Xorshift128plusContractAddress = Address(0x0000000000000008)
 pub let GenericRaffleSourceIdentifier = "A.0000000000000008.FlowtyRaffleSource.AnyStructRaffleSource"
 
 pub fun setup() {
-    var err = Test.deployContract(name: "FlowtyRaffles", path: "../contracts/FlowtyRaffles.cdc", arguments: [])
+    var err = Test.deployContract(name: "Xorshift128plus", path: "../contracts/standard/Xorshift128plus.cdc", arguments: [])
+    Test.expect(err, Test.beNil())
+
+    err = Test.deployContract(name: "FlowtyRaffles", path: "../contracts/FlowtyRaffles.cdc", arguments: [])
     Test.expect(err, Test.beNil())
 
     err = Test.deployContract(name: "FlowtyRaffleSource", path: "../contracts/FlowtyRaffleSource.cdc", arguments: [])
     Test.expect(err, Test.beNil())
 
-    // err = Test.deployContract(name: "Xorshift128plus", path: "../contracts/standard/Xorshift128plus.cdc", arguments: [])
-    // Test.expect(err, Test.beNil())
 }
 
 pub fun testSetupManager() {
