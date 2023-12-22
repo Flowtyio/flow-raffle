@@ -191,10 +191,20 @@ pub contract FlowtyRaffles {
         }
         
         pub fun addEntries(_ v: [AnyStruct]) {
+            let blockTs = UInt64(getCurrentBlock().timestamp)
+
+            assert(self.details.start == nil || self.details.start! <= blockTs, message: "cannot add entries to a raffle that has not started")
+            assert(self.details.end == nil || self.details.end! > blockTs, message: "cannot add entries to a raffle that has ended")
+
             self.source.addEntries(v)
         }
 
         pub fun addEntry(_ v: AnyStruct) {
+            let blockTs = UInt64(getCurrentBlock().timestamp)
+
+            assert(self.details.start == nil || self.details.start! <= blockTs, message: "cannot add entries to a raffle that has not started")
+            assert(self.details.end == nil || self.details.end! > blockTs, message: "cannot add entries to a raffle that has ended")
+
             self.source.addEntry(v)
         }
 
@@ -300,8 +310,6 @@ pub contract FlowtyRaffles {
 
             let currentBlock = getCurrentBlock()
             let blockTs = UInt64(currentBlock.timestamp)
-            assert(raffle.details.start == nil || raffle.details.start! <= blockTs, message: "drawings for this raffle have not started yet")
-            assert(raffle.details.end == nil || raffle.details.end! > blockTs, message: "drawings for this raffle have ended")
 
             let commitBlock = raffle.details.commitBlocksAhead + currentBlock.height
             let receiptID = raffle.commitDrawing(commitBlock: commitBlock)
