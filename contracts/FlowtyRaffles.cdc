@@ -193,17 +193,11 @@ pub contract FlowtyRaffles {
         pub fun addEntries(_ v: [AnyStruct]) {
             let blockTs = UInt64(getCurrentBlock().timestamp)
 
-            assert(self.details.start == nil || self.details.start! <= blockTs, message: "cannot add entries to a raffle that has not started")
-            assert(self.details.end == nil || self.details.end! > blockTs, message: "cannot add entries to a raffle that has ended")
-
             self.source.addEntries(v)
         }
 
         pub fun addEntry(_ v: AnyStruct) {
             let blockTs = UInt64(getCurrentBlock().timestamp)
-
-            assert(self.details.start == nil || self.details.start! <= blockTs, message: "cannot add entries to a raffle that has not started")
-            assert(self.details.end == nil || self.details.end! > blockTs, message: "cannot add entries to a raffle that has ended")
 
             self.source.addEntry(v)
         }
@@ -251,8 +245,8 @@ pub contract FlowtyRaffles {
     */
     pub resource interface ManagerPublic {
         pub fun borrowRafflePublic(id: UInt64): &{RafflePublic}?
-        pub fun revealDrawing(manager: &Manager{ManagerPublic}, raffleID: UInt64, receiptID: UInt64)
-        access(contract) fun _revealDrawing(raffleID: UInt64, receiptID: UInt64, drawer: &Manager)
+        pub fun revealDrawing(manager: &Manager{ManagerPublic}, raffleID: UInt64, receiptID: UInt64): DrawingResult
+        access(contract) fun _revealDrawing(raffleID: UInt64, receiptID: UInt64, drawer: &Manager): DrawingResult
     }
 
     /*
@@ -322,12 +316,12 @@ pub contract FlowtyRaffles {
         revealDrawing - reveals the result of a drawing, taking the committed data in the commit stage and using it to
         generate a random number to draw an entry from our raffle source
         */
-        pub fun revealDrawing(manager: &Manager{ManagerPublic}, raffleID: UInt64, receiptID: UInt64) {
+        pub fun revealDrawing(manager: &Manager{ManagerPublic}, raffleID: UInt64, receiptID: UInt64): DrawingResult {
             let ref = &self as &Manager
-            manager._revealDrawing(raffleID: raffleID, receiptID: receiptID, drawer: ref)
+            return manager._revealDrawing(raffleID: raffleID, receiptID: receiptID, drawer: ref)
         }
 
-        access(contract) fun _revealDrawing(raffleID: UInt64, receiptID: UInt64, drawer: &Manager) {
+        access(contract) fun _revealDrawing(raffleID: UInt64, receiptID: UInt64, drawer: &Manager): DrawingResult {
             let raffle = self.borrowRaffle(id: raffleID)
                 ?? panic("raffle not found")
 
@@ -337,6 +331,8 @@ pub contract FlowtyRaffles {
 
             var v = FlowtyRaffles.extractString(drawingResult.value)
             emit RaffleReceiptRevealed(address: self.owner?.address, raffleID: raffleID, receiptID: receiptID, commitBlock: receipt.commitBlock, revealHeight: getCurrentBlock().height, sourceType: raffle.source.getType(), index: drawingResult.index, value: v, valueType: drawingResult.value.getType())
+
+            return drawingResult
         }
 
         init() {
