@@ -1,9 +1,12 @@
 import "FlowtyRaffles"
 
 transaction {
-    prepare(acct: AuthAccount) {
+    prepare(acct: auth(Capabilities, Storage) &Account) {
         let manager <- FlowtyRaffles.createManager()
-        acct.save(<-manager, to: FlowtyRaffles.ManagerStoragePath)
-        acct.link<&FlowtyRaffles.Manager{FlowtyRaffles.ManagerPublic}>(FlowtyRaffles.ManagerPublicPath, target: FlowtyRaffles.ManagerStoragePath)
+        acct.storage.save(<-manager, to: FlowtyRaffles.ManagerStoragePath)
+        acct.capabilities.publish(
+            acct.capabilities.storage.issue<&FlowtyRaffles.Manager>(FlowtyRaffles.ManagerStoragePath),
+            at: FlowtyRaffles.ManagerPublicPath
+        )
     }
 }

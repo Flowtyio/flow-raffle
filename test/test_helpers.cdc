@@ -5,11 +5,11 @@ import Test
     https://github.com/onflow/hybrid-custody/blob/main/test/test_helpers.cdc
 */
 
-pub fun loadCode(_ fileName: String, _ baseDirectory: String): String {
+access(all) fun loadCode(_ fileName: String, _ baseDirectory: String): String {
     return Test.readFile("../".concat(baseDirectory).concat("/").concat(fileName))
 }
 
-pub fun scriptExecutor(_ scriptName: String, _ arguments: [AnyStruct]): AnyStruct? {
+access(all) fun scriptExecutor(_ scriptName: String, _ arguments: [AnyStruct]): AnyStruct? {
     let scriptCode = loadCode(scriptName, "scripts")
     let scriptResult = Test.executeScript(scriptCode, arguments)
 
@@ -22,9 +22,9 @@ pub fun scriptExecutor(_ scriptName: String, _ arguments: [AnyStruct]): AnyStruc
     return scriptResult.returnValue
 }
 
-pub fun txExecutor(
+access(all) fun txExecutor(
     _ txName: String,
-    _ signers: [Test.Account],
+    _ signers: [Test.TestAccount],
     _ arguments: [AnyStruct],
     _ expectedError: String?
 ): Bool {

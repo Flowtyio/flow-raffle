@@ -1,8 +1,8 @@
 import "FlowtyRaffles"
 
 transaction(raffleID: UInt64, entries: [AnyStruct]) {
-    prepare(acct: AuthAccount) {
-        let manager = acct.borrow<&FlowtyRaffles.Manager>(from: FlowtyRaffles.ManagerStoragePath)
+    prepare(acct: auth(Capabilities, Storage) &Account) {
+        let manager = acct.storage.borrow<auth(FlowtyRaffles.Manage) &FlowtyRaffles.Manager>(from: FlowtyRaffles.ManagerStoragePath)
             ?? panic("raffles manager not found")
         let raffle = manager.borrowRaffle(id: raffleID)
             ?? panic("raffle not found")
