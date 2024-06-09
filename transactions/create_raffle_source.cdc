@@ -1,11 +1,11 @@
 import "FlowtyRaffleSource"
 
 transaction(type: Type, path: StoragePath) {
-    prepare(acct: AuthAccount) {
+    prepare(acct: auth(Capabilities, Storage) &Account) {
         let source <- FlowtyRaffleSource.createRaffleSource(entryType: type, removeAfterReveal: false)
         let t = source.getEntryType()
         assert(t == type)
 
-        acct.save(<-source, to: path)
+        acct.storage.save(<-source, to: path)
     }
 }

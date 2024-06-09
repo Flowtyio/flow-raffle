@@ -13,29 +13,29 @@ In addition to entryType, a field called `removeAfterReveal` is also provided, w
 from the entries array any time a reveal is performed. This is useful for cases where you don't want the same entry to be able to be drawn
 multiple times.
 */
-pub contract FlowtyRaffleSource {
-    pub resource AnyStructRaffleSource: FlowtyRaffles.RaffleSourcePublic, FlowtyRaffles.RaffleSourcePrivate {
-        pub let entries: [AnyStruct]
-        pub let entryType: Type
-        pub let removeAfterReveal: Bool
+access(all) contract FlowtyRaffleSource {
+    access(all) resource AnyStructRaffleSource: FlowtyRaffles.RaffleSourcePublic, FlowtyRaffles.RaffleSourcePrivate {
+        access(all) let entries: [AnyStruct]
+        access(all) let entryType: Type
+        access(all) let removeAfterReveal: Bool
 
-        pub fun getEntryType(): Type {
+        access(all) fun getEntryType(): Type {
             return self.entryType
         }
 
-        pub fun getEntryAt(index: Int): AnyStruct {
+        access(all) fun getEntryAt(index: Int): AnyStruct {
             return self.entries[index]
         }
 
-        pub fun getEntries(): [AnyStruct] {
+        access(all) fun getEntries(): [AnyStruct] {
             return self.entries
         }
 
-        pub fun getEntryCount(): Int {
+        access(all) fun getEntryCount(): Int {
             return self.entries.length
         }
 
-        pub fun addEntry(_ v: AnyStruct) {
+        access(FlowtyRaffles.Add) fun addEntry(_ v: AnyStruct) {
             pre {
                 v.getType() == self.entryType: "incorrect entry type"
             }
@@ -43,7 +43,7 @@ pub contract FlowtyRaffleSource {
             self.entries.append(v)
         }
 
-        pub fun addEntries(_ v: [AnyStruct]) {
+        access(FlowtyRaffles.Add) fun addEntries(_ v: [AnyStruct]) {
             pre {
                 VariableSizedArrayType(self.entryType) == v.getType(): "incorrect array type"
             }
@@ -51,7 +51,7 @@ pub contract FlowtyRaffleSource {
             self.entries.appendAll(v)
         }
 
-        pub fun revealCallback(drawingResult: FlowtyRaffles.DrawingResult) {
+        access(contract) fun revealCallback(drawingResult: FlowtyRaffles.DrawingResult) {
             if !self.removeAfterReveal {
                 return 
             }
@@ -66,7 +66,7 @@ pub contract FlowtyRaffleSource {
         }
     }
 
-    pub fun createRaffleSource(entryType: Type, removeAfterReveal: Bool): @AnyStructRaffleSource  {
+    access(all) fun createRaffleSource(entryType: Type, removeAfterReveal: Bool): @AnyStructRaffleSource  {
         pre {
             entryType.isSubtype(of: Type<AnyStruct>()): "entry type must be a subtype of AnyStruct"
         }

@@ -2,16 +2,15 @@ import Test
 import "test_helpers.cdc"
 
 import "FlowtyRaffles"
-import "FlowtyRaffleSource"
 import "MetadataViews"
 
-pub let FlowtyRafflesContractAddress = Address(0x0000000000000007)
-pub let FlowtyRaffleSourceContractAddress = Address(0x0000000000000008)
-pub let Xorshift128plusContractAddress = Address(0x0000000000000008)
+access(all) let FlowtyRafflesContractAddress = Address(0x0000000000000007)
+access(all) let FlowtyRaffleSourceContractAddress = Address(0x0000000000000008)
+access(all) let Xorshift128plusContractAddress = Address(0x0000000000000008)
 
-pub let GenericRaffleSourceIdentifier = "A.0000000000000008.FlowtyRaffleSource.AnyStructRaffleSource"
+access(all) let GenericRaffleSourceIdentifier = "A.0000000000000008.FlowtyRaffleSource.AnyStructRaffleSource"
 
-pub fun setup() {
+access(all) fun setup() {
     var err = Test.deployContract(name: "FlowtyRaffles", path: "../contracts/FlowtyRaffles.cdc", arguments: [])
     Test.expect(err, Test.beNil())
 
@@ -22,13 +21,13 @@ pub fun setup() {
     // Test.expect(err, Test.beNil())
 }
 
-pub fun testSetupManager() {
+access(all) fun testSetupManager() {
     let acct = Test.createAccount()
     txExecutor("setup_manager.cdc", [acct], [], nil)
     scriptExecutor("borrow_manager.cdc", [acct.address])
 }
 
-pub fun testCreateRaffleSource() {
+access(all) fun testCreateRaffleSource() {
     let acct = Test.createAccount()
     let path = StoragePath(identifier: "testCreateRaffleSource")!
     txExecutor("create_raffle_source.cdc", [acct], [Type<Address>(), path], nil)
@@ -36,7 +35,7 @@ pub fun testCreateRaffleSource() {
     assert(res! as! String == GenericRaffleSourceIdentifier, message: "unexpected raffle source identifier")
 }
 
-pub fun testCreateRaffle() {
+access(all) fun testCreateRaffle() {
     let acct = Test.createAccount()
     let name = "testCreateRaffle"
     let description = "testCreateRaffle desc"
@@ -59,7 +58,7 @@ pub fun testCreateRaffle() {
     assert(end == details.end)
 }
 
-pub fun testAddToRaffle() {
+access(all) fun testAddToRaffle() {
     let acct = Test.createAccount()
     let id = createAddressRaffle(acct)
     let beforeEntries = getRaffleEntries(acct, id)!
@@ -73,7 +72,7 @@ pub fun testAddToRaffle() {
     assert(afterEntries[0] as! Address == acct.address)
 }
 
-pub fun testDrawFromRaffle() {
+access(all) fun testDrawFromRaffle() {
     let acct = Test.createAccount()
     let id = createAddressRaffle(acct)
     let beforeEntries = getRaffleEntries(acct, id)!
@@ -84,7 +83,7 @@ pub fun testDrawFromRaffle() {
     assert(drawing == acct.address.toString())
 
     // now let's add lots of additional entries
-    let accounts: {String: Test.Account} = {
+    let accounts: {String: Test.TestAccount} = {
         acct.address.toString(): acct
     }
     var count = 0
@@ -99,36 +98,36 @@ pub fun testDrawFromRaffle() {
     assert(accounts[drawing2] != nil)
 }
 
-pub fun getRaffleDetails(_ acct: Test.Account, _ id: UInt64): FlowtyRaffles.Details? {
+access(all) fun getRaffleDetails(_ acct: Test.TestAccount, _ id: UInt64): FlowtyRaffles.Details? {
     if let res = scriptExecutor("get_raffle_details.cdc", [acct.address, id]) {
         return res as! FlowtyRaffles.Details
     }
     return nil
 }
 
-pub fun getRaffleEntries(_ acct: Test.Account, _ id: UInt64): [AnyStruct]? {
+access(all) fun getRaffleEntries(_ acct: Test.TestAccount, _ id: UInt64): [AnyStruct]? {
     if let res = scriptExecutor("get_raffle_entries.cdc", [acct.address, id]) {
         return res as! [AnyStruct]
     }
     return nil
 }
 
-pub fun getRaffleEntriesCount(_ acct: Test.Account, _ id: UInt64): Int? {
+access(all) fun getRaffleEntriesCount(_ acct: Test.TestAccount, _ id: UInt64): Int? {
     if let res = scriptExecutor("get_num_raffle_entries.cdc", [acct.address, id]) {
         return res as! Int
     }
     return nil
 }
 
-pub fun addEntryToRaffle(_ acct: Test.Account, _ id: UInt64, _ entry: AnyStruct) {
+access(all) fun addEntryToRaffle(_ acct: Test.TestAccount, _ id: UInt64, _ entry: AnyStruct) {
     txExecutor("add_entry_to_raffle.cdc", [acct], [id, entry], nil)
 }
 
-pub fun addEntriesToRaffle(_ acct: Test.Account, _ id: UInt64, _ entries: [AnyStruct]) {
+access(all) fun addEntriesToRaffle(_ acct: Test.TestAccount, _ id: UInt64, _ entries: [AnyStruct]) {
     txExecutor("add_entries_to_raffle.cdc", [acct], [id, entries], nil)
 }
 
-pub fun createAddressRaffle(_ acct: Test.Account): UInt64 {
+access(all) fun createAddressRaffle(_ acct: Test.TestAccount): UInt64 {
     let name = "address raffle"
     let description = "address raffle desc"
     let thumbnail = "https://example.com/thumbnail"
@@ -142,7 +141,7 @@ pub fun createAddressRaffle(_ acct: Test.Account): UInt64 {
     return createEvent.raffleID
 }
 
-pub fun drawFromRaffle(_ signer: Test.Account, _ addr: Address, _ id: UInt64): String {
+access(all) fun drawFromRaffle(_ signer: Test.TestAccount, _ addr: Address, _ id: UInt64): String {
     txExecutor("draw_from_raffle.cdc", [signer], [addr, id], nil)
 
     let drawingEvent = Test.eventsOfType(Type<FlowtyRaffles.RaffleReceiptRevealed>()).removeLast() as! FlowtyRaffles.RaffleReceiptRevealed

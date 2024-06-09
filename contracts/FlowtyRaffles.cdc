@@ -2,18 +2,22 @@ import "MetadataViews"
 import "RandomBeaconHistory"
 // import "Xorshift128plus"
 
-pub contract FlowtyRaffles {
-    pub let ManagerStoragePath: StoragePath
-    pub let ManagerPublicPath: PublicPath
+access(all) contract FlowtyRaffles {
+    access(all) let ManagerStoragePath: StoragePath
+    access(all) let ManagerPublicPath: PublicPath
 
-    pub event ManagerCreated(uuid: UInt64)
-    pub event RaffleCreated(address: Address?, raffleID: UInt64)
-    pub event RaffleReceiptCommitted(address: Address?, raffleID: UInt64, receiptID: UInt64, commitBlock: UInt64)
-    pub event RaffleReceiptRevealed(address: Address?, raffleID: UInt64, receiptID: UInt64, commitBlock: UInt64, revealHeight: UInt64, sourceType: Type, index: Int, value: String?, valueType: Type)
+    access(all) event ManagerCreated(uuid: UInt64)
+    access(all) event RaffleCreated(address: Address?, raffleID: UInt64)
+    access(all) event RaffleReceiptCommitted(address: Address?, raffleID: UInt64, receiptID: UInt64, commitBlock: UInt64)
+    access(all) event RaffleReceiptRevealed(address: Address?, raffleID: UInt64, receiptID: UInt64, commitBlock: UInt64, revealHeight: UInt64, sourceType: Type, index: Int, value: String?, valueType: Type)
 
-    pub struct DrawingResult {
-        pub let index: Int
-        pub let value: AnyStruct
+    access(all) entitlement Add
+    access(all) entitlement Reveal
+    access(all) entitlement Manage
+
+    access(all) struct DrawingResult {
+        access(all) let index: Int
+        access(all) let value: AnyStruct
 
         init(_ index: Int, _ value: AnyStruct) {
             self.index = index
@@ -34,62 +38,62 @@ pub contract FlowtyRaffles {
     there is not way for the raffle itself to know if a source is acting in good faith. Make sure you choose a raffle
     source implementation with care, as choosing one from an unknown party could result in unfair outcomes.
     */
-    pub resource interface RaffleSourcePublic {
+    access(all) resource interface RaffleSourcePublic {
         /*
         getEntries - return all entries in this raffle.
         NOTE: This will not work if a raffle is so large that returning all its entries will exceed computation limits
         */
-        pub fun getEntries(): [AnyStruct]
+        access(all) fun getEntries(): [AnyStruct]
 
         // getEntryCount - return the total number of entries in this raffle source
-        pub fun getEntryCount(): Int
+        access(all) fun getEntryCount(): Int
 
         // getEntryAt - return the entry at a specific index of a raffle source
-        pub fun getEntryAt(index: Int): AnyStruct
+        access(all) fun getEntryAt(index: Int): AnyStruct
     }
 
-    pub resource interface RaffleSourcePrivate {
+    access(all) resource interface RaffleSourcePrivate {
         /*
         revealCallback - a callback used when a raffle is revealed. This could be used to do things like
         remove an entry once it has been picked. As with similar notes above in the RaffleSourcePublic interface,
         make sure you trust the implementation of this callback so that it does not introduce unforeseen risk
         to your raffle
         */
-        pub fun revealCallback(drawingResult: DrawingResult)
+        access(contract) fun revealCallback(drawingResult: DrawingResult)
         
         /*
         addEntries - adds an array of values into the raffle source, if it is permitted.
         NOTE: Some raffle source implementations might not permit this. As with other parts of this raffles
         implementation, be mindful of the source you are using and what it does
         */
-        pub fun addEntries(_ v: [AnyStruct])
+        access(Add) fun addEntries(_ v: [AnyStruct])
 
         /*
         addEntry - adds value into the raffle source, if it is permitted.
         NOTE: Some raffle source implementations might not permit this. As with other parts of this raffles
         implementation, be mindful of the source you are using and what it does
         */
-        pub fun addEntry(_ v: AnyStruct)
+        access(Add) fun addEntry(_ v: AnyStruct)
     }
 
-    pub resource interface RafflePublic {
-        pub fun borrowSourcePublic(): &{RaffleSourcePublic}?
-        pub fun getDetails(): Details
+    access(all) resource interface RafflePublic {
+        access(all) fun borrowSourcePublic(): &{RaffleSourcePublic}?
+        access(all) fun getDetails(): Details
     }
 
-    pub resource Receipt {
+    access(all) resource Receipt {
         // the block at which this receipt is allowed to be revealed
-        pub let commitBlock: UInt64
+        access(all) let commitBlock: UInt64
 
         // we record the uuid of the source used so that it cannot be swapped out 
         // between stages
-        pub let sourceUuid: UInt64
+        access(all) let sourceUuid: UInt64
         
         // the block this receipt was revealed on
-        pub var revealBlock: UInt64?
+        access(all) var revealBlock: UInt64?
 
         // the result of this receipt once it has been reveald 
-        pub var result: DrawingResult?
+        access(all) var result: DrawingResult?
 
         /*
         reveal - reveals the result of this receipt. A receipt can only be revealed if the current block is 
@@ -123,12 +127,12 @@ pub contract FlowtyRaffles {
         }
     }
 
-    pub struct Details {
-        pub let start: UInt64?
-        pub let end: UInt64?
-        pub let display: MetadataViews.Display?
-        pub let externalURL: MetadataViews.ExternalURL?
-        pub let commitBlocksAhead: UInt64
+    access(all) struct Details {
+        access(all) let start: UInt64?
+        access(all) let end: UInt64?
+        access(all) let display: MetadataViews.Display?
+        access(all) let externalURL: MetadataViews.ExternalURL?
+        access(all) let commitBlocksAhead: UInt64
 
         init(start: UInt64?, end: UInt64?, display: MetadataViews.Display?, externalURL: MetadataViews.ExternalURL?, commitBlocksAhead: UInt64) {
             self.start = start
@@ -139,25 +143,25 @@ pub contract FlowtyRaffles {
         }
     }
 
-    pub resource Raffle: RafflePublic {
+    access(all) resource Raffle: RafflePublic {
         // Basic details about this raffle
-        pub let details: Details
+        access(all) let details: Details
 
         // a set of addresses which are allowed to perform reveals on a raffle.
         // set this to nil to allow anyone to reveal a drawing
-        pub var revealers: {Address: Bool}?
+        access(all) var revealers: {Address: Bool}?
 
         // The source of entries for this raffle. This allows a raffle to delegate out 
         // what is being drawn. Some raffles might be for Addresses, others might be for
         // UInt64s or Strings
-        pub let source: @{RaffleSourcePublic, RaffleSourcePrivate}
+        access(contract) let source: @{RaffleSourcePublic, RaffleSourcePrivate}
 
         // Used to track all drawings done from this raffle. When a receipt is made,
         // it has no result until revealed, and can only be revealed if the current block is 
         // equal to or greater than the block a receipt was made on + details.commitBlocksAhead
-        pub let receipts: @{UInt64: Receipt}
+        access(all) let receipts: @{UInt64: Receipt}
 
-        pub fun borrowSourcePublic(): &{RaffleSourcePublic}? {
+        access(all) fun borrowSourcePublic(): &{RaffleSourcePublic}? {
             return &self.source as &{RaffleSourcePublic, RaffleSourcePrivate}
         }
 
@@ -190,7 +194,7 @@ pub contract FlowtyRaffles {
             return res
         }
         
-        pub fun addEntries(_ v: [AnyStruct]) {
+        access(Add) fun addEntries(_ v: [AnyStruct]) {
             let blockTs = UInt64(getCurrentBlock().timestamp)
 
             assert(self.details.start == nil || self.details.start! <= blockTs, message: "cannot add entries to a raffle that has not started")
@@ -199,7 +203,7 @@ pub contract FlowtyRaffles {
             self.source.addEntries(v)
         }
 
-        pub fun addEntry(_ v: AnyStruct) {
+        access(Add) fun addEntry(_ v: AnyStruct) {
             let blockTs = UInt64(getCurrentBlock().timestamp)
 
             assert(self.details.start == nil || self.details.start! <= blockTs, message: "cannot add entries to a raffle that has not started")
@@ -208,7 +212,7 @@ pub contract FlowtyRaffles {
             self.source.addEntry(v)
         }
 
-        pub fun getDetails(): Details {
+        access(all) fun getDetails(): Details {
             return self.details
         }
 
@@ -234,11 +238,6 @@ pub contract FlowtyRaffles {
                 }
             }
         }
-
-        destroy () {
-            destroy self.source
-            destroy self.receipts
-        }
     }
 
     /*
@@ -249,9 +248,9 @@ pub contract FlowtyRaffles {
     In addition to getting a raffle, the manager public also provides a way to reveal a raffle's outcome which is available for anyone to do
     based on the commit-reveal scheme underneath the raffle's management itself.
     */
-    pub resource interface ManagerPublic {
-        pub fun borrowRafflePublic(id: UInt64): &{RafflePublic}?
-        pub fun revealDrawing(manager: &Manager{ManagerPublic}, raffleID: UInt64, receiptID: UInt64)
+    access(all) resource interface ManagerPublic {
+        access(all) fun borrowRafflePublic(id: UInt64): &{RafflePublic}?
+        access(all) fun revealDrawing(manager: &Manager, raffleID: UInt64, receiptID: UInt64)
         access(contract) fun _revealDrawing(raffleID: UInt64, receiptID: UInt64, drawer: &Manager)
     }
 
@@ -260,28 +259,24 @@ pub contract FlowtyRaffles {
     This is made into its own interface so that a manager can be delegated out to others in the event that community run
     raffles are desired. One could make a capability to the private manager and share it with others they trust.
     */
-    pub resource interface ManagerPrivate {
-        pub fun borrowRaffle(id: UInt64): &Raffle?
-        pub fun commitDrawing(raffleID: UInt64): UInt64
+    access(all) resource interface ManagerPrivate {
+        access(Manage) fun borrowRaffle(id: UInt64): auth(Add) &Raffle?
+        access(Manage) fun commitDrawing(raffleID: UInt64): UInt64
     }
 
     // This is an empty interface to give reveal requests the ability to vet whether or not
     // the calling manager is permitted to perform a reveal on a given drawing or not
-    pub resource interface ManagerIdentity {}
+    access(all) resource interface ManagerIdentity {}
 
-    pub resource Manager: ManagerPublic, ManagerPrivate {
-        pub let raffles: @{UInt64: Raffle}
+    access(all) resource Manager: ManagerPublic, ManagerPrivate {
+        access(self) let raffles: @{UInt64: Raffle}
 
-        pub fun borrowRafflePublic(id: UInt64): &{RafflePublic}? {
+        access(all) fun borrowRafflePublic(id: UInt64): &{RafflePublic}? {
             return self.borrowRaffle(id: id)
         }
 
-        pub fun borrowRaffle(id: UInt64): &Raffle? {
-            if self.raffles[id] == nil {
-                return nil
-            }
-
-            return &self.raffles[id] as &Raffle?
+        access(Manage) fun borrowRaffle(id: UInt64): auth(Add) &Raffle? {
+            return &self.raffles[id]
         }
 
         /*
@@ -291,7 +286,7 @@ pub contract FlowtyRaffles {
         3. how many blocks ahead a result must be to be revealed. Setting commitBlocksAhead to 0 means a reveal can be done in the same block as the commit, and is subject to reversion risks
             discussed here: https://developers.flow.com/build/advanced-concepts/randomness#guidelines-for-safe-usage
         */
-        pub fun createRaffle(source: @{RaffleSourcePublic, RaffleSourcePrivate}, details: Details, revealers: [Address]?): UInt64 {
+        access(Manage) fun createRaffle(source: @{RaffleSourcePublic, RaffleSourcePrivate}, details: Details, revealers: [Address]?): UInt64 {
             let raffle <- create Raffle(source: <-source, details: details, revealers: revealers)
             let uuid = raffle.uuid
             emit RaffleCreated(address: self.owner?.address, raffleID: uuid)
@@ -304,7 +299,7 @@ pub contract FlowtyRaffles {
         commitDrawing - commits a new drawing for a raffle, creating a receipt resource with the specified commit block height
         to be revealed at a later date.
         */
-        pub fun commitDrawing(raffleID: UInt64): UInt64 {
+        access(Manage) fun commitDrawing(raffleID: UInt64): UInt64 {
             let raffle = self.borrowRaffle(id: raffleID)
                 ?? panic("raffle not found")
 
@@ -322,7 +317,7 @@ pub contract FlowtyRaffles {
         revealDrawing - reveals the result of a drawing, taking the committed data in the commit stage and using it to
         generate a random number to draw an entry from our raffle source
         */
-        pub fun revealDrawing(manager: &Manager{ManagerPublic}, raffleID: UInt64, receiptID: UInt64) {
+        access(all) fun revealDrawing(manager: &Manager, raffleID: UInt64, receiptID: UInt64) {
             let ref = &self as &Manager
             manager._revealDrawing(raffleID: raffleID, receiptID: receiptID, drawer: ref)
         }
@@ -333,7 +328,7 @@ pub contract FlowtyRaffles {
 
             assert(raffle.revealers == nil || raffle.revealers![drawer.owner!.address] == true, message: "drawer is not permitted to perform reveals on this raffle")
             let drawingResult = raffle.revealDrawing(id: receiptID)
-            let receipt = (&raffle.receipts[receiptID] as &Receipt?)!
+            let receipt = (raffle.receipts[receiptID])!
 
             var v = FlowtyRaffles.extractString(drawingResult.value)
             emit RaffleReceiptRevealed(address: self.owner?.address, raffleID: raffleID, receiptID: receiptID, commitBlock: receipt.commitBlock, revealHeight: getCurrentBlock().height, sourceType: raffle.source.getType(), index: drawingResult.index, value: v, valueType: drawingResult.value.getType())
@@ -342,15 +337,11 @@ pub contract FlowtyRaffles {
         init() {
             self.raffles <- {}
         }
-
-        destroy () {
-            destroy self.raffles
-        }
     }
 
     // taken from
     // https://github.com/onflow/random-coin-toss/blob/4271cd571b7761af36b0f1037767171aeca18387/contracts/CoinToss.cdc#L95
-    pub fun randUInt64(atBlockHeight: UInt64, salt: UInt64): UInt64 {
+    access(all) fun randUInt64(atBlockHeight: UInt64, salt: UInt64): UInt64 {
         // // query the Random Beacon history core-contract - if `blockHeight` <= current block height, panic & revert
         // let sourceOfRandomness = RandomBeaconHistory.sourceOfRandomness(atBlockHeight: atBlockHeight)
         // assert(sourceOfRandomness.blockHeight == atBlockHeight, message: "RandomSource block height mismatch")
@@ -364,10 +355,10 @@ pub contract FlowtyRaffles {
 
         // return prg.nextUInt64()
         // TODO: use commented-out implementation once we can test using the randomness beacon in the cadence testing framework
-        return revertibleRandom()
+        return revertibleRandom<UInt64>()
     }
 
-    pub fun extractString(_ value: AnyStruct?): String? {
+    access(all) fun extractString(_ value: AnyStruct?): String? {
         if value == nil {
             return nil
         }
@@ -392,7 +383,7 @@ pub contract FlowtyRaffles {
         return nil
     }
 
-    pub fun createManager(): @Manager {
+    access(all) fun createManager(): @Manager {
         return <- create Manager()
     }
 
